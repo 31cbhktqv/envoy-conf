@@ -83,3 +83,13 @@ func TestFilter_CombinedPrefixAndExclude(t *testing.T) {
 		t.Error("expected DB_URL in result")
 	}
 }
+
+func TestFilter_EmptyInput(t *testing.T) {
+	out, err := envfilter.Filter(map[string]string{}, envfilter.Options{Prefix: "APP_"})
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if len(out) != 0 {
+		t.Errorf("expected 0 entries for empty input, got %d", len(out))
+	}
+}
