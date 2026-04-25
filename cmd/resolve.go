@@ -11,9 +11,9 @@ import (
 )
 
 var (
-	resolveFiles    []string
+	resolveFiles      []string
 	resolveOSFallback bool
-	resolveOverrides []string
+	resolveOverrides  []string
 )
 
 var resolveCmd = &cobra.Command{
@@ -32,14 +32,9 @@ func init() {
 }
 
 func runResolve(cmd *cobra.Command, args []string) error {
-	var sources []resolver.Source
-
-	for _, path := range resolveFiles {
-		vars, err := envloader.LoadFile(path)
-		if err != nil {
-			return fmt.Errorf("failed to load %q: %w", path, err)
-		}
-		sources = append(sources, resolver.Source{Name: path, Vars: vars})
+	sources, err := loadSources(resolveFiles)
+	if err != nil {
+		return err
 	}
 
 	opts := resolver.ResolveOptions{
@@ -63,4 +58,18 @@ func runResolve(cmd *cobra.Command, args []string) error {
 		fmt.Fprintf(cmd.OutOrStdout(), "%s=%s\n", k, result[k])
 	}
 	return nil
+}
+
+// loadSources reads each file path into a resolver.Source, returning the first
+// error encountered along with the path that caused it.
+func loadSources(paths []string) ([]resolver.Source, error) {
+	sources := make([]resolver.Source, 0, len(paths))
+	for _, path := range paths {
+		vars, err := envloader.LoadFile(path)
+		if err != nil {
+			return nil, fmt.Errorf("failed to load %q: %w", path, err)
+		}
+		sources = append(sources, resolver.Source{Name: path, Vars: vars})
+	}
+	return sources, nil
 }
