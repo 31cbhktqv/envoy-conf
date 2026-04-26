@@ -73,6 +73,27 @@ func TestLint_CustomRule(t *testing.T) {
 	}
 }
 
+func TestLint_EmptyEnv(t *testing.T) {
+	l := New(DefaultRules())
+	violations := l.Lint(map[string]string{})
+	if len(violations) != 0 {
+		t.Errorf("expected no violations for empty env, got %d", len(violations))
+	}
+}
+
+func TestLint_ViolationMessage(t *testing.T) {
+	l := New(DefaultRules())
+	env := map[string]string{
+		"app_host": "localhost",
+	}
+	violations := l.Lint(env)
+	for _, v := range violations {
+		if v.Rule == "no-lowercase-key" && v.Message == "" {
+			t.Error("expected non-empty message for no-lowercase-key violation")
+		}
+	}
+}
+
 func hasRule(violations []Violation, name string) bool {
 	for _, v := range violations {
 		if v.Rule == name {
