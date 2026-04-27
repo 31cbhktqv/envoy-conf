@@ -34,6 +34,12 @@ func init() {
 func runSnapshot(cmd *cobra.Command, args []string) error {
 	envFile := args[0]
 
+	// Verify the env file exists before attempting to load it, so we can
+	// surface a clearer error message than what the loader would produce.
+	if _, err := os.Stat(envFile); os.IsNotExist(err) {
+		return fmt.Errorf("env file not found: %q", envFile)
+	}
+
 	env, err := envloader.LoadFile(envFile)
 	if err != nil {
 		return fmt.Errorf("failed to load env file %q: %w", envFile, err)
